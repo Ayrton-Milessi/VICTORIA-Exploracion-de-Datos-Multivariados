@@ -1,0 +1,262 @@
+# -*- coding: utf-8 -*-
+#leemos las librerias para poder aplicar distintas funciones
+library(readxl) 
+library(dplyr)
+library(stringr)
+
+
+#guardamos los archivos
+Victoria <- read.csv("VICTORIA.csv")
+primaria_2023 <- read.csv("Primaria 2023 - matrícula primaria.xls.csv")
+secundaria_2023 <- read.csv("secundaria 2023 - xls_export.csv")
+primaria_depta <- read.csv("primaria 2023 por departamentos - xls_export (10).csv")
+secundaria_depta <- read.csv("secundaria por departamentos 2023 - xls_export (11).csv")
+
+dim(Victoria) #dimension del archivo
+
+names(Victoria) #muestra las variables
+#cambiamos los nombres de las variables para un mejor entendimiento
+Victoria <- rename(Victoria, c("CodigoUnicoEscolar" = "CUE", "ModEnseñanza" = "ModEnsenaza", "año" = "anioLectivo", "esMultiaño" ="esMultianio", "IdModEnseñanza" = "IdModEnsenanza","NivelEnseñanza" = "NivelEnsenanza"))
+str(Victoria) #muestra los nombres del dataset, nos ayuda a identificar el tipo de variables
+
+
+#descubrimos que al intentar modificar el nombre de una varible, esta se encuentra dos veces en el conjunto de datos
+verificacion <- Victoria$idDivision == Victoria$ddivision
+print(verificacion) #como se muestra acá abajo, todos los datos coinciden, lo que quiere decir que son dos columnas identicas
+Victoria$ddivision <- NULL #entonces procedemos a eliminar una columna
+names(Victoria) #verificamos si se elimino correctamente
+
+#reemplazamos las notas "EPAC", "UP" y "PA" con un valor menor a 6
+Victoria$nota[Victoria$nota %in% c("EPAC", "UP", "PA")] <- 5
+Victoria$nota <- as.numeric(Victoria$nota) #convertimos la variable nota a tipo numérico
+
+unique(Victoria$ModEnseñanza) #verificamos los distintos tipos de modos de enseñanza
+#nos encontramos con datos incompletos, vamos a intentar reemplazar esos datos para no perderlos
+Victoria[Victoria$ModEnseñanza == 'S/D',] #buscamos todas las filas que le falten el dato sobre la modalidad de enseñanza
+#todos los alumnos pertenecen a una secundaria comun, por eso se remplazan los datos para no perderlos
+Victoria <- Victoria %>% mutate(ModEnseñanza = if_else(ModEnseñanza == "S/D","Comun", ModEnseñanza))
+unique(Victoria$ModEnseñanza) #ya no quedan datos incompletos
+
+#ahora podemos dividir el dataset en dos
+Victoria_primaria <- filter(Victoria, NivelEnseñanza == "PRIMARIO" & ModEnseñanza == "Comun") #se guardan los alumnos que cursan la primaria
+Victoria_secundaria <- filter(Victoria, NivelEnseñanza == "SECUNDARIO" & ModEnseñanza == "Comun" | ModEnseñanza == "Técnica" | ModEnseñanza =="Agrotécnica") #se guardan los alumnos que cursan la secundaria
+
+length(unique(Victoria_primaria$CodigoUnicoEscolar)) #cantidad de escuelas primarias en Victoria
+length(unique(primaria_2023$CUE)) #total de escuelas primarias
+length(unique(Victoria_secundaria$CodigoUnicoEscolar))#cantidad de escuelas secundarias en Victoria
+length(unique(secundaria_2023$CUE))#total de escuelas secundarias
+
+table(Victoria_primaria$asignatura) #matemática es la materia con mas frecuencias
+
+Victoria_1Grado <- filter(Victoria_primaria, str_detect(curso, "^1")) #extraemos todos los estudiantes de primer grado
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_1Grado$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_1Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_1Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_1Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_2Grado <- filter(Victoria_primaria, str_detect(curso, "^2")) #extraemos todos los estudiantes de segundo grado
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_2Grado$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_2Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_2Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_2Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_3Grado <- filter(Victoria_primaria, str_detect(curso, "^3")) #extraemos todos los estudiantes de tercero grado
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_3Grado$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_3Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_3Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_3Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_4Grado <- filter(Victoria_primaria, str_detect(curso, "^4")) #extraemos todos los estudiantes de cuarto grado
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_4Grado$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_4Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_4Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_4Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_5Grado <- filter(Victoria_primaria, str_detect(curso, "^5")) #extraemos todos los estudiantes de quinto grado
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_5Grado$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_5Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_5Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_5Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_6Grado <- filter(Victoria_primaria, str_detect(curso, "^6")) #extraemos todos los estudiantes de sexto grado
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_6Grado$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_6Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_6Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_6Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_7Grado <- filter(Victoria_primaria, str_detect(curso, "^7")) #extraemos todos los estudiantes de septimo grado
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_1Grado$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_7Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_7Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_7Grado, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+table(Victoria_secundaria$asignatura) #nos fijamos cual es la materia que mas frecuencias tiene para usarla como materia troncal
+
+Victoria_1año <- filter(Victoria_secundaria, str_detect(curso, "^1")) #extraemos todos los estudiantes de primer año
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_1año$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_1año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_1año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_1año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_2año <- filter(Victoria_secundaria, str_detect(curso, "^2")) #extraemos todos los estudiantes de segundo año
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_2año$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_2año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_2año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_2año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_3año <- filter(Victoria_secundaria, str_detect(curso, "^3")) #extraemos todos los estudiantes de tercer año
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_3año$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_3año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_3año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_3año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_4año <- filter(Victoria_secundaria, str_detect(curso, "^4")) #extraemos todos los estudiantes de cuarto año
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_4año$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_4año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_4año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_4año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_5año <- filter(Victoria_secundaria, str_detect(curso, "^5")) #extraemos todos los estudiantes de quinto año
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_5año$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_5año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_5año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_5año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_6año <- filter(Victoria_secundaria, str_detect(curso, "^6")) #extraemos todos los estudiantes de sexto año
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_6año$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_6año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_6año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_6año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
+Victoria_7año <- filter(Victoria_secundaria, str_detect(curso, "^7")) #extraemos todos los estudiantes de septimo año
+cantidad_matricula <- 0 #inicializamos una variable
+
+for (alumno in unique(Victoria_7año$idalumno)) { #por cada alumno de primer grado, extraeremos sus notas en Matemática
+  nota1 <- filter(Victoria_7año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Primer Trimestre")$nota
+  nota2 <- filter(Victoria_7año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Segundo Trimestre")$nota
+  nota3 <- filter(Victoria_7año, idalumno == alumno & asignatura == "MATEMATICA" & periodoEvaluatorio == "Tercer Trimestre")$nota
+  
+  if (length(nota1) > 0 & length(nota2) > 0 & length(nota3) > 0) { #si las notas estan
+    cantidad_matricula <- cantidad_matricula + 1 #incrementamos la cantidad de matriculados
+  }
+}
+
+cantidad_matricula
+
