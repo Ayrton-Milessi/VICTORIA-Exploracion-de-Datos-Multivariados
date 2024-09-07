@@ -1,0 +1,1 @@
+Este repositorio almacenará los distintos codigos generados en la exploración y análisis de datos multivariados relacionados con el sistema educativo del departamento Victoria, provincia de Entre Ríos.
