@@ -29,14 +29,14 @@ El trabajo aborda aspectos como:
           <img src="https://avatars.githubusercontent.com/u/141248568?s=100" width="100" alt="Ayrton Milessi"/><br>
           <sub><strong>Ayrton Milessi</strong></sub>
         </a><br>
-        <a href="mailto:ayrton4210@gmail.com">📧 Correo</a> • 
+        <a href="mailto:ayrton4210@gmail.com"> Correo</a>
       </td>
       <td align="center">
         <a href="https://www.linkedin.com/in/santiago-torres-5b3a59209/">
           <img src="https://avatars.githubusercontent.com/u/112248799?v=4" width="100" alt="Santiago Torres"/><br>
           <sub><strong>Santiago Torres</strong></sub>
         </a><br>
-        <a href="mailto:santorress2000@gmail.com">📧 Correo</a> • 
+        <a href="mailto:santorress2000@gmail.com"> Correo</a>
       </td>
     </tr>
   </table>
